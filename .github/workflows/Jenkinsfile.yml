@@ -9,52 +9,52 @@ pipeline {
 
     options {
         // Opções do pipeline
-        timeout(time: 1, unit: 'HOURS')
-        buildDiscarder(logRotator(numToKeepStr: '5'))
+        timeout(time: 1, unit: 'HOURS') // Tempo máximo de execução do pipeline
+        buildDiscarder(logRotator(numToKeepStr: '5')) // Manter apenas os últimos 5 builds
     }
 
     parameters {
-        // Parâmetros de entrada
+        // Parâmetros de entrada para o job
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch name to build')
         booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run tests after build')
     }
 
     triggers {
         // Triggers para iniciar o pipeline
-        cron('H 2 * * 1')
+        cron('H 2 * * 1') // Executar todas as segundas-feiras às 2:00 AM
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout scm // Checkout do código fonte
             }
         }
 
         stage('Build') {
             steps {
                 script {
-                    echo "Building version ${BUILD_VERSION}..."
+                    echo "Building version ${BUILD_VERSION}..." // Passos para a fase de construção
                 }
             }
         }
 
         stage('Test') {
             when {
-                expression { params.RUN_TESTS }
+                expression { params.RUN_TESTS } // Executar testes somente se RUN_TESTS for verdadeiro
             }
             steps {
                 script {
-                    echo "Running tests..."
+                    echo "Running tests..." // Executar testes
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                input message: 'Approve Deployment?', ok: 'Deploy'
+                input message: 'Approve Deployment?', ok: 'Deploy' // Aprovação manual para implantação
                 script {
-                    echo "Deploying version ${BUILD_VERSION}..."
+                    echo "Deploying version ${BUILD_VERSION}..." // Passos para a fase de implantação
                 }
             }
         }
@@ -64,14 +64,14 @@ pipeline {
                 stage('Parallel Stage 1') {
                     steps {
                         script {
-                            echo "Running parallel stage 1..."
+                            echo "Running parallel stage 1..." // Executando estágio paralelo 1
                         }
                     }
                 }
                 stage('Parallel Stage 2') {
                     steps {
                         script {
-                            echo "Running parallel stage 2..."
+                            echo "Running parallel stage 2..." // Executando estágio paralelo 2
                         }
                     }
                 }
@@ -83,18 +83,18 @@ pipeline {
                 axes {
                     axis {
                         name 'OS'
-                        values 'Windows', 'Linux'
+                        values 'Windows', 'Linux' // Valores para a variável 'OS'
                     }
                     axis {
                         name 'JDK'
-                        values 'JDK8', 'JDK11'
+                        values 'JDK8', 'JDK11' // Valores para a variável 'JDK'
                     }
                 }
                 stages {
                     stage('Build') {
                         steps {
                             script {
-                                echo "Building on ${OS} with ${JDK}..."
+                                echo "Building on ${OS} with ${JDK}..." // Construindo com diferentes variáveis de ambiente
                             }
                         }
                     }
@@ -105,13 +105,13 @@ pipeline {
 
     post {
         success {
-            echo 'Build succeeded!'
+            echo 'Build succeeded!' // Ações após um build bem-sucedido
         }
         failure {
-            echo 'Build failed!'
+            echo 'Build failed!' // Ações após um build com falha
         }
         always {
-            echo 'Cleaning up...'
+            echo 'Cleaning up...' // Ações que devem sempre ser executadas
         }
     }
 }
