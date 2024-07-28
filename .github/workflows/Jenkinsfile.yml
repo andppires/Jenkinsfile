@@ -1,0 +1,131 @@
+# ci_cd_pipeline.yml
+
+pipeline {
+    agent any 
+//Define o agente onde o pipeline será executado.
+    environment {
+        // Definindo variáveis de ambiente
+        NODE_ENV = 'test'
+        MY_ENV_VAR = 'my_value'
+    }
+
+    options {
+        // Opções para controlar o pipeline
+        timeout(time: 1, unit: 'HOURS')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    parameters {
+        // Parâmetros que podem ser passados ao pipeline
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch to build')
+        booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Deploy to production')
+    }
+
+    triggers {
+        // Gatilhos para iniciar o pipeline automaticamente
+        cron('H/15 * * * *')
+    }
+
+    stages {
+    //Define estágios do pipeline. Inclui stages paralelos para testes e linting, e um stage de matriz para execução em múltiplas plataformas.
+        stage('Checkout') {
+            steps {
+                // Checkout do repositório
+                git branch: "${params.BRANCH_NAME}", url: 'https://github.com/andppires/pipeline-ci-cd.git'
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                // Instalando dependências
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        // Executando testes unitários
+                        sh 'npm test'
+                    }
+                }
+                stage('Lint') {
+                    steps {
+                        // Verificando lint (supondo que haja um script de lint configurado no package.json)
+                        sh 'npm run lint'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                equals expected: true, actual: params.DEPLOY
+            }
+            steps {
+                script {
+                    // Script de deploy (substitua pelo seu script de deploy real)
+                    echo "Deploying to production..."
+                    sh './deploy.sh'
+                }
+            }
+        }
+
+        stage('Approval') {
+        //Input: Solicita aprovação manual para continuar o pipeline.
+            input {
+                message "Do you want to proceed to production deployment?"
+                ok "Yes"
+            }
+            steps {
+                script {
+                    echo "Proceeding with deployment..."
+                }
+            }
+        }
+
+        stage('Matrix') {
+            matrix {
+                axes {
+                    axis {
+                        name 'PLATFORM'
+                        values 'linux', 'windows'
+                    }
+                    axis {
+                        name 'BROWSER'
+                        values 'chrome', 'firefox'
+                    }
+                }
+                stages {
+                    stage('Test on Multiple Platforms') {
+                        steps {
+                            script {
+                                echo "Testing on ${PLATFORM} with ${BROWSER}"
+                                // Comando para executar testes em diferentes plataformas e navegadores
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'This will always run'
+        }
+        success {
+            echo 'This will run only if successful'
+        }
+        failure {
+            echo 'This will run only if failed'
+        }
+        unstable {
+            echo 'This will run only if the run was marked as unstable'
+        }
+        changed {
+            echo 'This will run only if the state of the Pipeline has changed'
+        }
+    }
+}
