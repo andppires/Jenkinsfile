@@ -5,6 +5,7 @@ pipeline {
         // Variáveis de ambiente
         NODE_ENV = 'development'
         BUILD_VERSION = '1.0.0'
+        CREDENTIALS_ID = credentials('your-credentials-id')  // Adiciona credenciais
     }
 
     options {
@@ -113,9 +114,5 @@ pipeline {
         always {
             echo 'Cleaning up...'  // Ações que devem sempre ser executadas
         }
-    }
-
-    environment {
-        CREDENTIALS_ID = credentials('your-credentials-id')  // Adiciona credenciais
     }
 }
