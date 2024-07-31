@@ -5,7 +5,7 @@ pipeline {
         // Variáveis de ambiente  - Define variáveis de ambiente que estarão disponíveis em todas as etapas do pipeline.
         NODE_ENV = 'development' //Variáveis de ambiente customizadas
         BUILD_VERSION = '1.0.0' 
-        CREDENTIALS_ID = credentials('your-credentials-id')  // Adiciona credenciais -  Armazena credenciais seguras, acessadas via ID. credentials('your-credentials-id') é uma função do Jenkins para recuperar credenciais armazenadas de forma segura.
+        CREDENTIALS_ID = credentials('my-git-credentials')  // Adiciona credenciais -  Armazena credenciais seguras, acessadas via ID. credentials('your-credentials-id') é uma função do Jenkins para recuperar credenciais armazenadas de forma segura.
     }
 
     options {
