@@ -46,7 +46,9 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Running tests..."  // Executar testes
+                    echo "Running tests..."
+                    sh 'npm install'  // Instala as dependências do projeto.
+                    sh 'npm test'  // Executa todos os testes.
                 }
             }
         }
