@@ -1,5 +1,5 @@
 function welcome() {
-    return "Bem-vindo ao mundo!!";
+    return "Bem-vindo ao mundo!";
 }
 
 module.exports = welcome;
