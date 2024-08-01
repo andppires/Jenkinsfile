@@ -101,7 +101,7 @@ pipeline {
                     stage('Build') {
                         steps {
                             script {
-                                echo "Building on ${OS} with ${JDK}..."  //  Construindo com diferentes variáveis de ambiente
+                                echo "Building on ${OS} with ${JDK}..." //  Construindo com diferentes variáveis de ambiente
                             }
                         }
                     }
