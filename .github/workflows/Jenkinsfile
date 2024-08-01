@@ -2,68 +2,69 @@ pipeline {
     agent any  // Agent
 
     environment {
-        // Variáveis de ambiente  - Define variáveis de ambiente que estarão disponíveis em todas as etapas do pipeline.
-        NODE_ENV = 'development' //Variáveis de ambiente customizadas
-        BUILD_VERSION = '1.0.0' 
-        CREDENTIALS_ID = credentials('my-git-credentials')  // Adiciona credenciais -  Armazena credenciais seguras, acessadas via ID. credentials('your-credentials-id') é uma função do Jenkins para recuperar credenciais armazenadas de forma segura.
+        NODE_ENV = 'development' // Variáveis de ambiente customizadas
+        BUILD_VERSION = '1.0.0'
+        CREDENTIALS_ID = credentials('my-git-credentials')  // Armazena credenciais seguras
     }
 
     options {
-        // Opções do pipeline - Configura opções globais para o pipeline.
-        timeout(time: 1, unit: 'HOURS')  // Tempo máximo de execução do pipeline - Define um tempo máximo de execução para o pipeline (1 hora neste caso).
-        buildDiscarder(logRotator(numToKeepStr: '5'))  // Manter apenas os últimos 5 builds - Mantém apenas os últimos 5 builds. Builds antigos são descartados.
+        timeout(time: 1, unit: 'HOURS')  // Tempo máximo de execução do pipeline
+        buildDiscarder(logRotator(numToKeepStr: '5'))  // Manter apenas os últimos 5 builds
     }
 
     parameters {
-        // Parâmetros de entrada para o job - Define parâmetros que podem ser passados para o pipeline ao iniciar um build.
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch name to build') //Parâmetro de entrada do tipo string (neste caso, o nome da branch a ser construída).
-        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run tests after build')//Parâmetro booleano que determina se os testes devem ser executados após a construção.
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch name to build') // Nome da branch a ser construída
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run tests after build') // Executar testes após a construção
     }
 
     triggers {
-        // Triggers para iniciar o pipeline - Define gatilhos para iniciar o pipeline automaticamente
-        cron('H 2 * * 1')  // Executar todas as segundas-feiras às 2:00 AM - Configura o pipeline para ser executado automaticamente todas as segundas-feiras às 2:00 AM.
+        cron('H 2 * * 1')  // Executar todas as segundas-feiras às 2:00 AM
     }
 
-    stages { // Contém a definição dos estágios do pipeline. Cada estágio pode ter uma série de etapas para serem executadas.
-        stage('Checkout') { //Define um estágio chamado "Checkout".
-            steps {  // Contém os passos a serem executados neste estágio.
-                checkout scm  // Checkout do código fonte - Faz o checkout do código fonte do repositório configurado no Jenkins.
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm  // Checkout do código fonte
             }
         }
 
-        stage('Build') { //Define um estágio chamado "Build".
+        stage('Build') {
             steps {
-                script { //Permite executar um bloco de código Groovy.
-                    echo "Building version ${BUILD_VERSION}..."  // Passos para a fase de construção - Exibe uma mensagem indicando que a construção está sendo realizada.
+                script {
+                    echo "Building version ${BUILD_VERSION}..."  // Passos para a fase de construção
                 }
             }
         }
 
-        stage('Test') { //Define um estágio chamado "Test".
-            when {  //Condicional que determina se o estágio deve ser executado.
-                expression { params.RUN_TESTS }  // Executar testes somente se RUN_TESTS for verdadeiro - O estágio é executado somente se o parâmetro RUN_TESTS for verdadeiro.
+        stage('Test') {
+            when {
+                expression { params.RUN_TESTS }  // Executar testes somente se RUN_TESTS for verdadeiro
             }
             steps {
                 script {
                     echo "Running tests..."
-                    sh 'npm install'  // Instala as dependências do projeto.
-                    sh 'npm test'  // Executa todos os testes.
+                    if (isUnix()) {
+                        sh 'npm install'  // Instala as dependências do projeto para Unix/Linux
+                        sh 'npm test'  // Executa todos os testes para Unix/Linux
+                    } else {
+                        bat 'npm install'  // Instala as dependências do projeto para Windows
+                        bat 'npm test'  // Executa todos os testes para Windows
+                    }
                 }
             }
         }
 
-        stage('Deploy') {  //Define um estágio chamado "Deploy".
+        stage('Deploy') {
             steps {
-                input message: 'Approve Deployment?', ok: 'Deploy'  // Aprovação manual para implantação - Solicita uma aprovação manual antes de prosseguir com a implantação.
-                script { //Executa a etapa de implantação após a aprovação.
+                input message: 'Approve Deployment?', ok: 'Deploy'  // Aprovação manual para implantação
+                script {
                     echo "Deploying version ${BUILD_VERSION}..."  // Passos para a fase de implantação
                 }
             }
         }
 
-        stage('Parallel Steps') { // Define um estágio que executa subestágios em paralelo.
-            parallel { // Permite que os estágios internos sejam executados simultaneamente.
+        stage('Parallel Steps') {
+            parallel {
                 stage('Parallel Stage 1') {
                     steps {
                         script {
@@ -81,9 +82,9 @@ pipeline {
             }
         }
 
-        stage('Matrix Example') { // Define um estágio usando uma matriz.
-            matrix { //Permite a execução de uma combinação de diferentes configurações.
-                axes { // Define variáveis para a matriz (OS e JDK).
+        stage('Matrix Example') {
+            matrix {
+                axes {
                     axis {
                         name 'OS'
                         values 'Windows', 'Linux'  // Valores para a variável 'OS'
@@ -94,7 +95,7 @@ pipeline {
                     }
                 }
                 stages {
-                    stage('Build') { //Executa a construção para cada combinação de valores da matriz.
+                    stage('Build') {
                         steps {
                             script {
                                 echo "Building on ${OS} with ${JDK}..."  // Construindo com diferentes variáveis de ambiente
@@ -106,15 +107,15 @@ pipeline {
         }
     }
 
-    post { //Define ações a serem realizadas após a execução do pipeline, independentemente do resultado.
-        success { 
-            echo 'Build succeeded!'  // Ações após um build bem-sucedido - Ações a serem tomadas se o pipeline for bem-sucedido.
+    post {
+        success {
+            echo 'Build succeeded!'  // Ações após um build bem-sucedido
         }
         failure {
-            echo 'Build failed!'  // Ações após um build com falha - Ações a serem tomadas se o pipeline falhar.
+            echo 'Build failed!'  // Ações após um build com falha
         }
         always {
-            echo 'Cleaning up...'  // Ações que devem sempre ser executadas - Ações que sempre serão executadas, independentemente do resultado do pipeline.
+            echo 'Cleaning up...'  // Ações que devem sempre ser executadas
         }
     }
 }
