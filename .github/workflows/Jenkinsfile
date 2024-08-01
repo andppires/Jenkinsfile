@@ -56,6 +56,9 @@ pipeline {
 
         stage('Deploy') {
             steps {
+                script {
+                    echo "Waiting for approval..."  // Mensagem de depuração
+                }
                 input message: 'Approve Deployment?', ok: 'Deploy'  // Aprovação manual para implantação
                 script {
                     echo "Deploying version ${BUILD_VERSION}..."  // Passos para a fase de implantação
