@@ -4,6 +4,23 @@ Este projeto demonstra uma pipeline de CI/CD utilizando Jenkins e Node.js, com t
 
 ## Estrutura do Projeto
 
+Abaixo está a organização dos diretórios e arquivos do projeto:
+
+```
+pipeline-ci-cd/
+├── .github/
+│ └── workflows/Jenkinsfile
+├── src/
+│ └── welcome.js
+├── test/
+│ └── welcome.test.js
+├── README.md
+├── jest.config.js
+└── package.json
+```
+
+Detalhes dos arquivos mais importante dessa estrutura em um projeto Jenkins:
+
 - `.github/workflows/Jenkinsfile`: Arquivo de configuração do Jenkins Pipeline.
 - `src/welcome.js`: Código fonte da função de boas-vindas.
 - `test/welcome.test.js`: Testes automatizados utilizando Jest.
